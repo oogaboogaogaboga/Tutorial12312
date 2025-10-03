@@ -1,0 +1,82 @@
+-- human_test.lua
+-- Test script for "Human NPC" simulation
+-- Run: lua human_test.lua
+
+math.randomseed(os.time())
+
+-- Utility functions
+local function sleep(seconds)
+  local t0 = os.clock()
+  while os.clock() - t0 < seconds do end
+end
+
+local function rand_range(a, b)
+  return a + math.random() * (b - a)
+end
+
+-- NPC definition
+local NPC = {}
+NPC.__index = NPC
+
+function NPC.new(name)
+  return setmetatable({
+    name = name or "TestSubject",
+    energy = 100,
+    mood = "neutral",
+    pos = {x=0,y=0}
+  }, NPC)
+end
+
+function NPC:log(text)
+  print(string.format("[NPC: %s] %s", self.name, text))
+end
+
+function NPC:walk(x, y)
+  self:log(string.format("Walking from (%.1f, %.1f) to (%.1f, %.1f)", 
+    self.pos.x, self.pos.y, x, y))
+  self.pos.x, self.pos.y = x, y
+  self.energy = self.energy - 10
+  sleep(0.2)
+  self:log("Arrived at destination.")
+end
+
+function NPC:speak(msg)
+  self:log("Speaking test...")
+  io.write(self.name .. ": ")
+  for i = 1, #msg do
+    io.write(msg:sub(i,i))
+    io.flush()
+    sleep(0.03 + rand_range(0, 0.02))
+  end
+  io.write("\n")
+  self.energy = self.energy - 5
+end
+
+function NPC:rest()
+  self:log("Resting...")
+  sleep(0.3)
+  self.energy = math.min(100, self.energy + 20)
+  self:log("Energy restored to " .. self.energy)
+end
+
+-- =============================
+-- TEST SCRIPT BEGINS
+-- =============================
+
+print("=== HUMAN NPC TEST SCRIPT START ===")
+local npc = NPC.new("Alex")
+
+print("\n[TEST 1] Walking")
+npc:walk(3,4)
+
+print("\n[TEST 2] Speaking")
+npc:speak("Hello, this is a test of human-like behavior.")
+
+print("\n[TEST 3] Resting")
+npc:rest()
+
+print("\n[FINAL STATUS]")
+npc:log(string.format("Position (%.1f, %.1f), Energy = %d, Mood = %s", 
+  npc.pos.x, npc.pos.y, npc.energy, npc.mood))
+
+print("\n=== TEST COMPLETE ===")
